@@ -105,12 +105,16 @@ bool DibCaptureHelper::Capture(cv::Mat &img)
 	
 	BITMAP bmp;
 	GetObject(bitmap_, sizeof(BITMAP), &bmp);
-	img.create(cv::Size(bmp.bmWidth, bmp.bmHeight), CV_MAKETYPE(CV_8U, 3));
-	GetBitmapBits(bitmap_, bmp.bmHeight*bmp.bmWidth * 3, img.data);
+	cv::Mat newImg;
+	newImg.create(cv::Size(bmp.bmWidth, bmp.bmHeight), CV_MAKETYPE(CV_8U, 4));
+	GetBitmapBits(bitmap_, bmp.bmHeight*bmp.bmWidth * 4, newImg.data);
+	//std::cout << newImg.channels() << std::endl;
+	
+	cv::cvtColor(newImg, img, cv::COLOR_RGBA2RGB);
 	//std::cout << img.channels() << std::endl;
 	//cv::imshow("img", img);
 	//cv::waitKey(0);
 	finish = clock();
-	printf("%f seconds\n", (double)(finish - start) / CLOCKS_PER_SEC);
+	// printf("%f seconds\n", (double)(finish - start) / CLOCKS_PER_SEC);
 	return true;
 }

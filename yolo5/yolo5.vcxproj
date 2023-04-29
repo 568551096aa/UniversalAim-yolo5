@@ -150,7 +150,7 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\project\yolo5Trt\tensorrtx-master\yolov5\plugin;D:\project\yolo5Trt\tensorrtx-master\yolov5\src;D:\project\yolo5Trt\tensorrtx-master\yolov5;D:\project\yolov5_c++\yolo5\yolo5\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\project\yolo5Trt\tensorrtx-master\yolov5\src;D:\project\yolo5Trt\tensorrtx-master\yolov5\plugin;D:\project\yolo5Trt\tensorrtx-master\yolov5;D:\project\yolov5_c++\yolo5\yolo5\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

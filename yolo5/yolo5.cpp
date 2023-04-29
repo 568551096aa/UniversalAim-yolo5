@@ -71,43 +71,69 @@ std::atomic<bool> ft = false;
 
 void ShotAndDet()
 {
-	std::lock_guard<std::recursive_mutex> lk(mut);
-	clock_t start, finish;
-	cv::Mat img;
-	std::vector<cv::Rect> rect;
-	std::vector<float> conf;
-	std::vector<float> classId;
-	shotHelp.Capture(img);
-
-	start = clock();
-	Detect(rect, conf, classId, img);
-	finish = clock();
-	if (rect.size() == 0) {
-		return;
-	}
-	cv::Point lastMovePos;
-	float lastDistance = 99 * 99;
-	for (int i = 0; i < rect.size(); i++) {
-		if (conf[i] <= 0.55 || (int)classId[i] == ft.load()) {
+	while (true) {
+		std::lock_guard<std::recursive_mutex> lk(mut);
+		if (!sigSwitch.load()) {
+			Sleep(40);
 			continue;
 		}
-		cv::Point post = cv::Point(shotHelp.posx_ + rect[i].tl().x + rect[i].width,
-			shotHelp.posy_ + rect[i].tl().y + rect[i].height);
-		cv::Point pos = cv::Point(post.x - (shotHelp.posx_ + shotHelp.rectsize_ / 2),
-			post.y - (shotHelp.posy_ + shotHelp.rectsize_ / 2));
-		if ((pos.x * pos.x + pos.y * pos.y) < lastDistance) {
-			lastDistance = pos.x * pos.x + pos.y * pos.y;
-			lastMovePos = pos;
+		//clock_t start, finish;
+		//start = clock();
+		cv::Mat img;
+		cv::Rect rect[10];
+		float conf[10] = { 0 };
+		float classId[10] = { 0 };
+		int count = 0;
+		shotHelp.Capture(img);
+
+		Detect(rect, conf, classId, img, count);
+
+		if (count == 0) {
+			continue;
 		}
+		int lastMovePosX = 0, lastMovePosY = 0;
+		int centerX = 0, centerY = 0;
+		cv::Point post;
+		float lastDistance = 99 * 99;
+		for (int i = 0; i < count; i++) {
+			if (conf[i] <= 0.55 || (int)classId[i] == ft.load()) {
+				continue;
+			}
+
+			post = cv::Point(shotHelp.posx_ + rect[i].tl().x + rect[i].width / 2,
+				shotHelp.posy_ + rect[i].tl().y + rect[i].height / 2);
+			centerX = shotHelp.posx_ + shotHelp.rectsize_ / 2;
+			centerY = shotHelp.posy_ + shotHelp.rectsize_ / 2;
+			cv::Point pos = cv::Point(post.x - (shotHelp.posx_ + shotHelp.rectsize_ / 2),
+				post.y - (shotHelp.posy_ + shotHelp.rectsize_ / 2));
+			if ((pos.x * pos.x + pos.y * pos.y) < lastDistance) {
+				lastDistance = pos.x * pos.x + pos.y * pos.y;
+				lastMovePosX = pos.x;
+				lastMovePosY = pos.y;
+			}
+		}
+		if (lastDistance == 99 * 99) {
+			continue;
+		}
+		if (fabs(lastMovePosX) <= 1 && fabs(lastMovePosY) <= 1) {
+			continue;
+		}
+		// std::cout << "move" << lastMovePos.x  << " " << lastMovePos.y << std::endl;
+		//std::thread([=]() {DD_movR(lastMovePos.x, lastMovePos.y); }).detach();
+		//DD_mov(centerX, centerY);
+		//Sleep(1000);
+		std::thread([=]() {DD_movR(lastMovePosX * 1.9, lastMovePosY * 1.9); }).detach();
+		/*int cx = post.x;
+		int cy = post.y;
+		Sleep(1000);
+		DD_mov(centerX, centerY);
+		Sleep(1000);
+		DD_mov(cx, cy);*/
+
+		//finish = clock();
+		//printf("%f seconds\n", (double)(finish - start) / CLOCKS_PER_SEC);
 	}
-	if (lastDistance == 99 * 99) {
-		return;
-	}
-	if (fabs(lastMovePos.x) <= 1 && fabs(lastMovePos.y) <= 1) {
-		return;
-	}
-	DD_movR(lastMovePos.x, lastMovePos.y);
-	printf("%f seconds\n", (double)(finish - start) / CLOCKS_PER_SEC);
+
 }
 
 LRESULT CALLBACK Proc(int code, WPARAM w, LPARAM l) {
@@ -119,8 +145,10 @@ LRESULT CALLBACK Proc(int code, WPARAM w, LPARAM l) {
 			ft.store(!ft);
 			break;
 		case 86:
-			std::cout << "down V" << std::endl;
-			std::thread(ShotAndDet).detach();
+			//std::cout << "down V" << std::endl;
+			if (!sigSwitch.load()) {
+				sigSwitch.store(true);
+			}
 			break;
 		case 121:
 			std::cout << "down F10" << std::endl;
@@ -135,6 +163,7 @@ LRESULT CALLBACK Proc(int code, WPARAM w, LPARAM l) {
 		switch (x) {
 		case 86:
 			//std::cout << "up v" << std::endl;
+			sigSwitch.store(false);
 			break;
 		case 121:
 			//std::cout << "up f10" << std::endl;
@@ -150,6 +179,7 @@ int main() {
 	UnInitMouseHid();
 	InitDet();
 	shotHelp.Init(320);
+	std::thread(ShotAndDet).detach();
 	hook = ::SetWindowsHookEx(WH_KEYBOARD_LL, Proc, 0, 0);
 	MSG msg;
 	while (GetMessage(&msg, NULL, 0, 0)) {
