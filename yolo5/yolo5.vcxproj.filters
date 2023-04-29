@@ -13,13 +13,30 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Yolo5">
-      <UniqueIdentifier>{47df3780-7ebc-48d3-a82e-5c0b305b0424}</UniqueIdentifier>
+    <Filter Include="MouseAndKeyboard">
+      <UniqueIdentifier>{a6481d95-68fc-4ed8-ad6f-706c84723e22}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="yolo5">
+      <UniqueIdentifier>{a8e4f4b9-728f-4483-a569-5f01c78c3dd2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="yolo5.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="ScreenShot.h">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ScreenShot.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Mouse.h">
+      <Filter>MouseAndKeyboard</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="detect.h">
+      <Filter>yolo5</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

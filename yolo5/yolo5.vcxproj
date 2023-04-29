@@ -183,7 +183,13 @@ torch_cuda.lib;XNNPACK.lib;cuda.lib;%(AdditionalDependencies)</AdditionalDepende
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Mouse.h" />
+    <ClCompile Include="ScreenShot.cpp" />
+    <ClCompile Include="ScreenShot.h" />
     <ClCompile Include="yolo5.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="detect.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
