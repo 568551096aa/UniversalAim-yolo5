@@ -79,7 +79,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>D:\RrogramFile\opencv\opencv\build\include;D:\RrogramFile\opencv\opencv\build\include\opencv2;$(IncludePath)</IncludePath>
+    <IncludePath>D:\RrogramFile\opencv\opencv\build\include;D:\RrogramFile\opencv\opencv\build\include\opencv2;D:\project\yolov5_c++\yolo5\yolo5\include;$(IncludePath)</IncludePath>
     <LibraryPath>D:\RrogramFile\opencv\opencv\build\x64\vc15\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

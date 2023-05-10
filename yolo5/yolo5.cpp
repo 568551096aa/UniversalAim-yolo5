@@ -7,6 +7,7 @@
 #include "libloaderapi.h"
 #include <iostream>
 #include <mutex>
+#include<conio.h>
 #include <atomic>
 typedef int(*pDD_btn)(int btn);
 typedef int(*pDD_whl)(int whl);
@@ -66,14 +67,14 @@ SYSTEMTIME systime;
 HHOOK hook = nullptr;
 DibCaptureHelper shotHelp;
 std::recursive_mutex mut;
-std::atomic<bool> sigSwitch = false;
-std::atomic<bool> ft = false;
-
+std::atomic<int> sigSwitch = 0;
+std::atomic<int> ft = 0;
+std::atomic<int> gimItem = 0;
 void ShotAndDet()
 {
 	while (true) {
 		std::lock_guard<std::recursive_mutex> lk(mut);
-		if (!sigSwitch.load()) {
+		if (sigSwitch.load() != 1) {
 			Sleep(40);
 			continue;
 		}
@@ -92,14 +93,14 @@ void ShotAndDet()
 			continue;
 		}
 		int lastMovePosX = 0, lastMovePosY = 0;
+		int lastMovePosXLast = 0, lastMovePosYLast = 0;
 		int centerX = 0, centerY = 0;
 		cv::Point post;
 		float lastDistance = 99 * 99;
 		for (int i = 0; i < count; i++) {
-			if (conf[i] <= 0.55 || (int)classId[i] == ft.load()) {
+			if (conf[i] <= 0.6 || (int)classId[i] == ft.load()) {
 				continue;
 			}
-
 			post = cv::Point(shotHelp.posx_ + rect[i].tl().x + rect[i].width / 2,
 				shotHelp.posy_ + rect[i].tl().y + rect[i].height / 2);
 			centerX = shotHelp.posx_ + shotHelp.rectsize_ / 2;
@@ -112,17 +113,33 @@ void ShotAndDet()
 				lastMovePosY = pos.y;
 			}
 		}
-		if (lastDistance == 99 * 99) {
+		if (lastDistance >= 99 * 90) {
 			continue;
 		}
 		if (fabs(lastMovePosX) <= 1 && fabs(lastMovePosY) <= 1) {
+			sigSwitch.store(2);
 			continue;
 		}
 		// std::cout << "move" << lastMovePos.x  << " " << lastMovePos.y << std::endl;
 		//std::thread([=]() {DD_movR(lastMovePos.x, lastMovePos.y); }).detach();
 		//DD_mov(centerX, centerY);
 		//Sleep(1000);
-		std::thread([=]() {DD_movR(lastMovePosX * 1.9, lastMovePosY * 1.9); }).detach();
+		// std::cout << "moev " << lastMovePosX * 1.9 << " " << lastMovePosY * 1.9 << std::endl;
+		// DD_movR(lastMovePosX * 1.9, lastMovePosY * 1.9);
+		if (gimItem == 1 && (fabs(lastMovePosXLast) - fabs(lastMovePosX) > 0 || fabs(lastMovePosXLast) - fabs(lastMovePosY) > 0)) {
+			sigSwitch.store(2);
+			lastMovePosXLast = 999;
+			lastMovePosYLast = 999;
+			gimItem = 0;
+			continue;
+		}
+		// std::cout << "move" << std::endl;
+		DD_movR(lastMovePosX * 1.9 / 3, lastMovePosY * 1.9 / 3);
+		//DD_movR(lastMovePosX * 1.9 * 0.8, lastMovePosY * 1.9* 0.8);
+		lastMovePosXLast = lastMovePosX;
+		lastMovePosXLast = lastMovePosY;
+		gimItem = 1;
+		// DD_movR(lastMovePosX * 0.95, lastMovePosY * 0.95);
 		/*int cx = post.x;
 		int cy = post.y;
 		Sleep(1000);
@@ -142,16 +159,28 @@ LRESULT CALLBACK Proc(int code, WPARAM w, LPARAM l) {
 	if (w == WM_KEYDOWN) {
 		switch (x) {
 		case 76:
-			ft.store(!ft);
+			if (ft == 1) {
+				ft = 0;
+			} else {
+				ft = 1;
+			}
 			break;
 		case 86:
+			//DD_movR(10, 10);
 			//std::cout << "down V" << std::endl;
-			if (!sigSwitch.load()) {
-				sigSwitch.store(true);
+			if (sigSwitch.load() == 0) {
+				sigSwitch.store(1);
 			}
 			break;
 		case 121:
-			std::cout << "down F10" << std::endl;
+			/*std::cout << "down F10" << std::endl;
+			UnInitMouseHid();
+			UnInitDet();
+			UnhookWindowsHookEx(hook);
+			exit(0);*/
+			break;
+		case 123:
+			std::cout << "down F12" << std::endl;
 			UnInitMouseHid();
 			UnInitDet();
 			UnhookWindowsHookEx(hook);
@@ -163,7 +192,7 @@ LRESULT CALLBACK Proc(int code, WPARAM w, LPARAM l) {
 		switch (x) {
 		case 86:
 			//std::cout << "up v" << std::endl;
-			sigSwitch.store(false);
+			sigSwitch.store(0);
 			break;
 		case 121:
 			//std::cout << "up f10" << std::endl;
@@ -175,8 +204,8 @@ LRESULT CALLBACK Proc(int code, WPARAM w, LPARAM l) {
 
 int main() {
 
+
 	InitMouseHid();
-	UnInitMouseHid();
 	InitDet();
 	shotHelp.Init(320);
 	std::thread(ShotAndDet).detach();
